@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use anyhow::Result;
-use move_core_types::account_address::AccountAddress;
+use anyhow::{Result, anyhow};
 use move_core_types::identifier::Identifier;
-use move_core_types::language_storage::StructTag;
 use sui_sdk::SuiClient;
 use sui_sdk::rpc_types::{SuiTransactionBlockResponseOptions, SuiTransactionBlockResponse};
 use sui_sdk::types::TypeTag;
@@ -13,12 +11,25 @@ use sui_sdk::types::quorum_driver_types::ExecuteTransactionRequestType;
 use sui_sdk::types::transaction::{Command, ObjectArg, TransactionData};
 use sui_sdk::wallet_context::WalletContext;
 
+use crate::command::AppCommand;
 use crate::gas::select_gas;
 
 #[derive(Debug, Copy, Clone)]
 pub enum DenyListCommand {
     Add(SuiAddress),
     Remove(SuiAddress)
+}
+
+impl TryFrom<AppCommand> for DenyListCommand {
+    type Error = anyhow::Error;
+
+    fn try_from(cmd: AppCommand) -> Result<Self> {
+        match cmd {
+            AppCommand::DenyListAdd(address) => Ok(DenyListCommand::Add(address)),
+            AppCommand::DenyListRemove(address) => Ok(DenyListCommand::Remove(address)),
+            _ => Err(anyhow!("Invalid command for deny list")),
+        }
+    }
 }
 
 impl DenyListCommand {
@@ -39,31 +50,7 @@ impl ToString for DenyListCommand {
     }
 }
 
-pub struct Contract {
-    pub package_id: ObjectID,
-    pub module: String,
-    pub otw: String,
-}
-
-impl TryInto<TypeTag> for &Contract {
-    type Error = anyhow::Error;
-    fn try_into(self) -> Result<TypeTag> {
-        let Contract {
-            package_id,
-            module,
-            otw,
-        } = self;
-
-        Ok(TypeTag::Struct(Box::new(StructTag {
-            address: AccountAddress::new(package_id.as_ref().try_into()?),
-            module: Identifier::from_str(module)?,
-            name: Identifier::from_str(otw)?,
-            type_params: vec![],
-        })))
-    }
-}
-
-pub async fn deny(
+pub async fn deny_list_add(
     client: &SuiClient,
     wallet: &mut WalletContext,
     otw_type: TypeTag,
@@ -74,7 +61,7 @@ pub async fn deny(
     deny_list_cmd(client, wallet, DenyListCommand::Add(addr), otw_type, deny_list, deny_cap).await
 }
 
-pub async fn undeny(
+pub async fn deny_list_remove(
     client: &SuiClient,
     wallet: &mut WalletContext,
     otw_type: TypeTag,

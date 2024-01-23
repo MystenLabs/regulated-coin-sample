@@ -1,9 +1,7 @@
 import {SuiClient} from "@mysten/sui.js/client";
 import {
-    ADMIN_ADDRESS,
-    ADMIN_SECRET_KEY, COIN_NAME, COIN_TYPE,
-    DENY_CAP_ID, MODULE_NAME,
-    PACKAGE_ID,
+    ADMIN_SECRET_KEY, COIN_TYPE,
+    DENY_CAP_ID,
     SUI_DENY_LIST_OBJECT_ID,
     SUI_NETWORK,
     TREASURY_CAP_ID

@@ -90,40 +90,40 @@ Run the CLI with the following commands:
 #### Add Address to Deny List
 
 ```bash
-npm run stablemanager -- deny-list-add --address <address>
+npm run coin-manager -- deny-list-add --address <address>
 or 
-ts-node stablemanager deny-list-add --address <address>
+ts-node coin-manager deny-list-add --address <address>
 ```
 
 
 #### Remove Address from Deny List
 
 ```bash
-npm run stablemanager -- deny-list-remove --address <address> 
+npm run coin-manager -- deny-list-remove --address <address> 
 or
-ts-node stablemanager deny-list-remove --address <address>
+ts-node coin-manager deny-list-remove --address <address>
 ```
 
 ### 2. Mint and Transfer
 
 ```bash
-npm run stablemanager -- mint-and-transfer --amount <amount> --address <address>
+npm run coin-manager -- mint-and-transfer --amount <amount> --address <address>
 or 
-ts-node stablemanager mint-and-transfer --amount <amount> --address <address>
+ts-node coin-manager mint-and-transfer --amount <amount> --address <address>
 ```
 
 ### 3. Burn Coins
 
 ```bash
-npm run stablemanager -- burn --coin <coinAddress>
+npm run coin-manager -- burn --coin <coinAddress>
 or 
-ts-node stablemanager burn --coin <coinAddress>
+ts-node coin-manager burn --coin <coinAddress>
 ```
 
 ### 4. Help
 
 ```bash
-npm run stablemanager help
+npm run coin-manager help
 or 
-ts-node stablemanager help
+ts-node coin-manager help
 ```

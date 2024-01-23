@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "stablemanager": "env-cmd -f ../.env ts-node src/stablemanager"
+    "coin-manager": "env-cmd -f ../.env ts-node src/main"
   },
   "author": "",
   "license": "ISC",

@@ -21,7 +21,7 @@ use sui_sdk::types::{
 use sui_sdk::SuiClient;
 use tracing::info;
 
-use crate::command::AppCommand;
+use super::AppCommand;
 use crate::gas::select_gas;
 
 pub async fn get_deny_list(client: &SuiClient) -> Result<(ObjectID, SequenceNumber)> {

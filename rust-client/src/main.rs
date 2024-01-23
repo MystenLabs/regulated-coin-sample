@@ -5,14 +5,13 @@ use clap::{Parser, Subcommand};
 use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::Identifier;
 use move_core_types::language_storage::{StructTag, TypeTag};
-use rust_client::command::AppCommand;
-use rust_client::config::AppConfig;
-use rust_client::tx_run;
 use sui_config::{sui_config_dir, SUI_CLIENT_CONFIG};
 use sui_sdk::types::base_types::{ObjectID, SuiAddress};
 use sui_sdk::wallet_context::WalletContext;
 use tracing::debug;
 
+use rust_client::tx_run;
+use rust_client::tx_run::{AppCommand, AppConfig};
 
 /// Regulated coin command line interface
 #[derive(Parser, Debug)]

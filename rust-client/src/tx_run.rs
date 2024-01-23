@@ -2,11 +2,27 @@ mod coin;
 mod deny;
 
 use anyhow::Result;
+use move_core_types::language_storage::TypeTag;
 use sui_keys::keystore::AccountKeystore;
+use sui_sdk::SuiClient;
 use sui_sdk::rpc_types::SuiTransactionBlockResponse;
+use sui_sdk::types::base_types::{SuiAddress, ObjectID};
+use sui_sdk::wallet_context::WalletContext;
 
-use crate::command::AppCommand;
-use crate::config::AppConfig;
+#[derive(Debug)]
+pub enum AppCommand {
+    DenyListAdd(SuiAddress),
+    DenyListRemove(SuiAddress),
+    MintAndTransfer(u64, SuiAddress),
+    Transfer(ObjectID, SuiAddress),
+    Burn(ObjectID)
+}
+
+pub struct AppConfig {
+    pub client: SuiClient,
+    pub wallet_context: WalletContext,
+    pub type_tag: TypeTag,
+}
 
 pub async fn execute_command(
     command: AppCommand,

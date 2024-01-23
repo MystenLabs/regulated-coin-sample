@@ -1,6 +1,6 @@
 # Regulated Coin Utility
 
-## Contains a sample move module and CLI tools to manage your Regulated Coin
+#### Contains a sample move module and CLI tools to manage your Regulated Coin
 
 ### Available tools:
 

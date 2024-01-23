@@ -1,21 +1,18 @@
 use std::str::FromStr;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::Identifier;
 use move_core_types::language_storage::{StructTag, TypeTag};
 use rust_client::command::AppCommand;
 use rust_client::config::AppConfig;
+use rust_client::tx_run;
 use sui_config::{sui_config_dir, SUI_CLIENT_CONFIG};
-use sui_sdk::rpc_types::{SuiObjectDataFilter, SuiObjectDataOptions, SuiObjectResponseQuery};
 use sui_sdk::types::base_types::{ObjectID, SuiAddress};
-use sui_sdk::types::object::Owner;
-use sui_sdk::types::SUI_DENY_LIST_OBJECT_ID;
 use sui_sdk::wallet_context::WalletContext;
 use tracing::debug;
 
-use rust_client::deny::deny_list_cmd;
 
 /// Regulated coin command line interface
 #[derive(Parser, Debug)]
@@ -97,67 +94,8 @@ async fn main() -> Result<()> {
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    let (mut config, command) = cli_parse().await?;
-
-
-    let resp = config.client
-        .read_api()
-        .get_object_with_options(
-            SUI_DENY_LIST_OBJECT_ID,
-            SuiObjectDataOptions {
-                show_type: true,
-                show_owner: true,
-                show_previous_transaction: false,
-                show_display: false,
-                show_content: false,
-                show_bcs: false,
-                show_storage_rebate: false,
-            },
-        )
-        .await?;
-
-    let deny_list = resp.data.ok_or(anyhow!("No deny-list found!"))?;
-    let Some(Owner::Shared {
-        initial_shared_version,
-    }) = deny_list.owner
-    else {
-        return Err(anyhow!("Invalid deny-list owner!"));
-    };
-    let deny_list = (SUI_DENY_LIST_OBJECT_ID, initial_shared_version);
-
-    let resp = config.client
-        .read_api()
-        .get_owned_objects(
-            config.wallet_context.active_address()?,
-            Some(SuiObjectResponseQuery {
-                filter: Some(SuiObjectDataFilter::StructType(StructTag {
-                    address: AccountAddress::from_hex_literal("0x2")?,
-                    module: Identifier::from_str("coin")?,
-                    name: Identifier::from_str("DenyCap")?,
-                    type_params: vec![config.type_tag.clone()],
-                })),
-                options: None,
-            }),
-            None,
-            None,
-        )
-        .await?;
-
-    let deny_cap = resp
-        .data
-        .into_iter()
-        .next()
-        .ok_or(anyhow!("No deny-cap found!"))?;
-    let deny_cap = deny_cap.data.ok_or(anyhow!("DenyCap empty!"))?.object_ref();
-    let resp = deny_list_cmd(
-        &config.client,
-        &mut config.wallet_context,
-        command.try_into()?,
-        config.type_tag,
-        deny_list,
-        deny_cap,
-    )
-    .await?;
+    let (config, command) = cli_parse().await?;
+    let resp = tx_run::execute_command(command, config).await?;
 
     debug!("{:?}", resp);
 

@@ -33,11 +33,10 @@ fi
 # USER1_ADDRESS
 # USER1_SECRET_KEY
 # USER1_KEY_SCHEME
-ADMIN_NAME=USER1
-ADMIN_ADDRESS_NAME=${ADMIN_NAME}_ADDRESS
-echo "- Publisher Address is: ${!ADMIN_ADDRESS_NAME}"
+ADMIN_ADDRESS=$(sui client active-address)
+echo "- Publisher Address is: ${ADMIN_ADDRESS}"
 
-switch_res=$(sui client switch --address ${!ADMIN_ADDRESS_NAME})
+# switch_res=$(sui client switch --address ${ADMIN_ADDRESS_NAME})
 
 publish_res=$(sui client publish --skip-fetch-latest-git-deps --gas-budget 2000000000 --json ${MOVE_PACKAGE_PATH})
 
@@ -67,10 +66,10 @@ cat >.env<<-API_ENV
 SUI_FULLNODE_URL=$NETWORK
 BACKEND_API=$BACKEND_API
 PACKAGE_ID=$PACKAGE_ID
-ADMIN_NAME=$ADMIN_NAME
+ADMIN_ADDRESS=$ADMIN_ADDRESS
 DENY_CAP_ID=$DENY_CAP_ID
 TREASURY_CAP_ID=$TREASURY_CAP_ID
-RUST_LOG=rust-client=DEBUG
+RUST_LOG=rust_client=DEBUG
 
 
 API_ENV

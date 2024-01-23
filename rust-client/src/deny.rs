@@ -1,19 +1,17 @@
 use std::str::FromStr;
 
 use anyhow::Result;
-
 use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::Identifier;
 use move_core_types::language_storage::StructTag;
-use shared_crypto::intent::{Intent, IntentMessage};
 use sui_sdk::SuiClient;
 use sui_sdk::rpc_types::{SuiTransactionBlockResponseOptions, SuiTransactionBlockResponse};
 use sui_sdk::types::TypeTag;
 use sui_sdk::types::base_types::{ObjectID, ObjectRef, SequenceNumber, SuiAddress};
-use sui_sdk::types::crypto::{Signature, SuiKeyPair};
 use sui_sdk::types::programmable_transaction_builder::ProgrammableTransactionBuilder;
 use sui_sdk::types::quorum_driver_types::ExecuteTransactionRequestType;
-use sui_sdk::types::transaction::{Command, ObjectArg, Transaction, TransactionData};
+use sui_sdk::types::transaction::{Command, ObjectArg, TransactionData};
+use sui_sdk::wallet_context::WalletContext;
 
 use crate::gas::select_gas;
 
@@ -67,35 +65,35 @@ impl TryInto<TypeTag> for &Contract {
 
 pub async fn deny(
     client: &SuiClient,
-    signer: &SuiKeyPair,    // Can &dyn Signer<Signature> help to use either Signer or Keystore?
+    wallet: &mut WalletContext,
     otw_type: TypeTag,
     deny_list: (ObjectID, SequenceNumber),
     deny_cap: ObjectRef,
     addr: SuiAddress,
 ) -> Result<SuiTransactionBlockResponse> {
-    deny_list_cmd(client, signer, DenyListCommand::Add(addr), otw_type, deny_list, deny_cap).await
+    deny_list_cmd(client, wallet, DenyListCommand::Add(addr), otw_type, deny_list, deny_cap).await
 }
 
 pub async fn undeny(
     client: &SuiClient,
-    signer: &SuiKeyPair,    // Can &dyn Signer<Signature> help to use either Signer or Keystore?
+    wallet: &mut WalletContext,
     otw_type: TypeTag,
     deny_list: (ObjectID, SequenceNumber),
     deny_cap: ObjectRef,
     addr: SuiAddress,
 ) -> Result<SuiTransactionBlockResponse> {
-    deny_list_cmd(client, signer, DenyListCommand::Remove(addr), otw_type, deny_list, deny_cap).await
+    deny_list_cmd(client, wallet, DenyListCommand::Remove(addr), otw_type, deny_list, deny_cap).await
 }
 
 pub async fn deny_list_cmd(
     client: &SuiClient,
-    signer: &SuiKeyPair,    // Can &dyn Signer<Signature> help to use either Signer or Keystore?
+    wallet: &mut WalletContext,
     cmd: DenyListCommand,
     otw_type: TypeTag,
     deny_list: (ObjectID, SequenceNumber),
     deny_cap: ObjectRef,
 ) -> Result<SuiTransactionBlockResponse> {
-    let signer_addr = SuiAddress::from(&signer.public());
+    let signer_addr = wallet.active_address()?;
     let gas_data = select_gas(client, signer_addr, None, None, vec![], None).await?;
 
     let mut ptb = ProgrammableTransactionBuilder::new();
@@ -117,23 +115,19 @@ pub async fn deny_list_cmd(
 
     let builder = ptb.finish();
 
-    // Sign transaction
-    let msg = IntentMessage {
-        intent: Intent::sui_transaction(),
-        value: TransactionData::new_programmable(
+    let tx_data = TransactionData::new_programmable(
             signer_addr,
             vec![gas_data.object],
             builder,
             gas_data.budget,
             gas_data.price,
-        ),
-    };
-    let sig = Signature::new_secure(&msg, signer);
+        );
+    let tx = wallet.sign_transaction(&tx_data);
 
     let res = client
         .quorum_driver_api()
         .execute_transaction_block(
-            Transaction::from_data(msg.value, vec![sig]),
+            tx,
             SuiTransactionBlockResponseOptions::new()
                 .with_effects()
                 .with_input(),

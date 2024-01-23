@@ -30,7 +30,7 @@ help                         prints help
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/MystenLabs/stablecoin-utility.git
+   git clone https://github.com/MystenLabs/regulated-coin-sample.git
    cd stablecoin-utility
    ```
 

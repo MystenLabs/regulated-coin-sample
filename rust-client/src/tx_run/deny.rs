@@ -1,18 +1,23 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::Identifier;
 use move_core_types::language_storage::StructTag;
 use shared_crypto::intent::{Intent, IntentMessage};
-use sui_sdk::rpc_types::{SuiTransactionBlockResponse, SuiTransactionBlockResponseOptions, SuiObjectDataOptions, SuiObjectResponseQuery, SuiObjectDataFilter};
+use sui_sdk::rpc_types::{
+    SuiObjectDataFilter, SuiObjectDataOptions, SuiObjectResponseQuery, SuiTransactionBlockResponse,
+    SuiTransactionBlockResponseOptions,
+};
 use sui_sdk::types::base_types::{ObjectID, ObjectRef, SequenceNumber, SuiAddress};
-use sui_sdk::types::crypto::{SuiKeyPair, Signature};
+use sui_sdk::types::coin::COIN_MODULE_NAME;
+use sui_sdk::types::crypto::{Signature, SuiKeyPair};
 use sui_sdk::types::object::Owner;
 use sui_sdk::types::programmable_transaction_builder::ProgrammableTransactionBuilder;
 use sui_sdk::types::quorum_driver_types::ExecuteTransactionRequestType;
-use sui_sdk::types::transaction::{Command, ObjectArg, TransactionData, Transaction};
-use sui_sdk::types::{TypeTag, SUI_DENY_LIST_OBJECT_ID};
+use sui_sdk::types::transaction::{Command, ObjectArg, Transaction, TransactionData};
+use sui_sdk::types::{
+    TypeTag, SUI_DENY_LIST_OBJECT_ID, SUI_FRAMEWORK_ADDRESS, SUI_FRAMEWORK_PACKAGE_ID,
+};
 use sui_sdk::SuiClient;
 use tracing::info;
 
@@ -45,16 +50,19 @@ pub async fn get_deny_list(client: &SuiClient) -> Result<(ObjectID, SequenceNumb
     Ok((SUI_DENY_LIST_OBJECT_ID, initial_shared_version))
 }
 
-pub async fn get_deny_cap(client: &SuiClient, owner_addr: SuiAddress, type_tag: TypeTag) -> Result<ObjectRef> {
-
+pub async fn get_deny_cap(
+    client: &SuiClient,
+    owner_addr: SuiAddress,
+    type_tag: TypeTag,
+) -> Result<ObjectRef> {
     let resp = client
         .read_api()
         .get_owned_objects(
             owner_addr,
             Some(SuiObjectResponseQuery {
                 filter: Some(SuiObjectDataFilter::StructType(StructTag {
-                    address: AccountAddress::from_hex_literal("0x2")?,
-                    module: Identifier::from_str("coin")?,
+                    address: SUI_FRAMEWORK_ADDRESS,
+                    module: Identifier::from(COIN_MODULE_NAME),
                     name: Identifier::from_str("DenyCap")?,
                     type_params: vec![type_tag],
                 })),
@@ -171,8 +179,8 @@ async fn deny_list_cmd(
     let deny_cap = ptb.obj(ObjectArg::ImmOrOwnedObject(deny_cap))?;
     let address = ptb.pure(cmd.address())?;
     ptb.command(Command::move_call(
-        ObjectID::from_single_byte(0x2),
-        Identifier::from_str("coin")?,
+        SUI_FRAMEWORK_PACKAGE_ID,
+        Identifier::from(COIN_MODULE_NAME),
         Identifier::from_str(&cmd.to_string())?,
         vec![otw_type],
         vec![deny_list, deny_cap, address],

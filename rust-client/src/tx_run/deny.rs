@@ -14,6 +14,7 @@ use sui_sdk::types::quorum_driver_types::ExecuteTransactionRequestType;
 use sui_sdk::types::transaction::{Command, ObjectArg, TransactionData, Transaction};
 use sui_sdk::types::{TypeTag, SUI_DENY_LIST_OBJECT_ID};
 use sui_sdk::SuiClient;
+use tracing::info;
 
 use crate::command::AppCommand;
 use crate::gas::select_gas;
@@ -117,6 +118,7 @@ pub async fn deny_list_add(
     deny_cap: ObjectRef,
     addr: SuiAddress,
 ) -> Result<SuiTransactionBlockResponse> {
+    info!("ADDING {addr} TO DENY_LIST");
     deny_list_cmd(
         client,
         signer,
@@ -136,6 +138,7 @@ pub async fn deny_list_remove(
     deny_cap: ObjectRef,
     addr: SuiAddress,
 ) -> Result<SuiTransactionBlockResponse> {
+    info!("REMOVING {addr} FROM DENY_LIST");
     deny_list_cmd(
         client,
         signer,

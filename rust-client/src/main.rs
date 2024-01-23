@@ -31,19 +31,43 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum CliCommand {
     /// Add an address to allow-list
-    #[command(name = "deny")]
-    Deny {
+    #[command(name = "deny-list-add")]
+    DenyListAdd {
         /// The address to insert to deny-list
         #[arg(value_parser)]
         address: String,
     },
     /// Remove an address from deny-list
-    #[clap(name = "undeny")]
-    Undeny {
+    #[clap(name = "deny-list-remove")]
+    DenyListRemove {
         /// The address to remove from deny-list
         #[arg(value_parser)]
         address: String,
     },
+    /// Mint and transfer coin
+    MintAndTransfer {
+        /// Balance of the new Coin
+        #[arg(long = "balance", short = 'b')]
+        balance: u64,
+        /// The address to transfer the new Coin
+        #[arg(value_parser)]
+        address: String,
+    },
+    /// Transfer coin from the sui client's active address
+    Transfer {
+        /// The Coin to transfer
+        #[arg(long = "coin", short = 'c')]
+        coin: String,
+        /// The address to transfer the Coin
+        #[arg(value_parser)]
+        address: String,
+    },
+    /// Burn coin inside the sui client's active address
+    Burn {
+        /// The Coin to burn
+        #[arg(value_parser)]
+        coin: String,
+    }
 }
 
 async fn cli_parse() -> Result<(AppConfig, AppCommand)> {
@@ -71,9 +95,10 @@ async fn cli_parse() -> Result<(AppConfig, AppCommand)> {
         WalletContext::new(&sui_config_dir()?.join(SUI_CLIENT_CONFIG), None, None).await?;
 
     let command = match command {
-        CliCommand::Deny { address } => AppCommand::DenyListAdd(SuiAddress::from_str(&address)?),
-        CliCommand::Undeny { address } => AppCommand::DenyListRemove(SuiAddress::from_str(&address)?),
-
+        CliCommand::DenyListAdd { address } => AppCommand::DenyListAdd(SuiAddress::from_str(&address)?),
+        CliCommand::DenyListRemove { address } => AppCommand::DenyListRemove(SuiAddress::from_str(&address)?),
+        CliCommand::MintAndTransfer { balance, address } => AppCommand::MintAndTransfer(balance, SuiAddress::from_str(&address)?),
+        _ => {todo!()}
     };
 
     let client = wallet_context.get_client().await?;

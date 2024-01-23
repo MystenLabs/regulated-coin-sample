@@ -24,6 +24,10 @@ pub async fn execute_command(command: AppCommand, config: AppConfig) -> Result<S
             let deny_cap = deny::get_deny_cap(&client, active_addr, type_tag.clone()).await?;
             deny::deny_list_remove(&client, signer, type_tag, deny_list, deny_cap, address).await
         },
-        _ => {todo!();}
+        AppCommand::MintAndTransfer(balance, to_address) => {
+            let treasury_cap = coin::get_treasury_cap(&client, active_addr, type_tag.clone()).await?;
+            coin::mint_and_transfer(&client, signer, type_tag, treasury_cap, to_address, balance).await
+        }
+        _ => { todo!(); }
     }
 }

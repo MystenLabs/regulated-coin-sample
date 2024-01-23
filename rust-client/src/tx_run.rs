@@ -41,8 +41,11 @@ pub async fn execute_command(
             let coin = coin::get_coin(&client, coin_id).await?;
             coin::transfer(&client, signer, coin, to_address).await
         }
-        _ => {
-            todo!();
+        AppCommand::Burn(coin_id) => {
+            let treasury_cap =
+                coin::get_treasury_cap(&client, active_addr, type_tag.clone()).await?;
+            let coin = coin::get_coin(&client, coin_id).await?;
+            coin::burn(&client, signer, type_tag, treasury_cap, coin).await
         }
     }
 }

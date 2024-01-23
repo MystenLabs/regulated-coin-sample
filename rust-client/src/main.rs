@@ -99,7 +99,7 @@ async fn cli_parse() -> Result<(AppConfig, AppCommand)> {
         CliCommand::DenyListRemove { address } => AppCommand::DenyListRemove(SuiAddress::from_str(&address)?),
         CliCommand::MintAndTransfer { balance, address } => AppCommand::MintAndTransfer(balance, SuiAddress::from_str(&address)?),
         CliCommand::Transfer { coin, address } => AppCommand::Transfer(ObjectID::from_hex_literal(&coin)?, SuiAddress::from_str(&address)?),
-        _ => {todo!()}
+        CliCommand::Burn { coin } => AppCommand::Burn(ObjectID::from_hex_literal(&coin)?),
     };
 
     let client = wallet_context.get_client().await?;

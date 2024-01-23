@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 
 use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::Identifier;

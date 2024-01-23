@@ -13,11 +13,11 @@ use sui_sdk::types::crypto::SuiKeyPair;
 use sui_sdk::types::object::Owner;
 use tracing::info;
 
-use client::deny::{deny_list_cmd, Contract, DenyListCommand};
+use rust_client::deny::{deny_list_cmd, Contract, DenyListCommand};
 
 /// Regulated coin command line interface
 #[derive(Parser, Debug)]
-#[command(name = "client")]
+#[command(name = "rust-client")]
 struct Cli {
     /// The address of the contract the coin is issued. If none is passed, .env `PACKAGE_ID` will be used.
     #[arg(long = "package-id", short = 'p')]

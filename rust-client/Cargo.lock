@@ -1259,22 +1259,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "client"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bcs",
- "clap",
- "dotenvy",
- "move-core-types",
- "shared-crypto",
- "sui-sdk",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "codespan"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5546,6 +5530,22 @@ dependencies = [
  "signature 2.2.0",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "rust-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bcs",
+ "clap",
+ "dotenvy",
+ "move-core-types",
+ "shared-crypto",
+ "sui-sdk",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

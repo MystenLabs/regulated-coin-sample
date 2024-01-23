@@ -13,14 +13,18 @@ NETWORK=http://localhost:9000
 # Put the dependant package, as the depending will be published too via --with-unpublished-dependencies
 MOVE_PACKAGE_PATH=./move/regulated_coin_example
 
+sui client switch --env localnet
+
 if [ $# -ne 0 ]; then
   if [ $1 = "testnet" ]; then
     NETWORK="https://rpc.testnet.sui.io:443"
     FAUCET="https://faucet.testnet.sui.io/gas"
+    sui client switch --env testnet
   fi
   if [ $1 = "devnet" ]; then
     NETWORK="https://rpc.devnet.sui.io:443"
     FAUCET="https://faucet.devnet.sui.io/gas"
+    sui client switch --env devnet
   fi
 fi
 

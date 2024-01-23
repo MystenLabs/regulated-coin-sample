@@ -53,6 +53,23 @@ Ensure that you have the necessary environment variables set in a `.env` file or
 
 ## Usage
 
+You can use the provided move module `regulated_coin` as a base example for your own Regulated Coin, modify it to suit your needs and publish it to the SUI network
+
+To publish the module and setup the nesessary environment variables, run the following commands:
+
+```bash
+# Make sure that you are at the root folder of the project.
+./publish.sh
+```
+
+By default, this publishes the move module to the local network.
+
+To publish to other networks, run :
+
+```bash
+./publish.sh testnet|devnet
+````
+
 Run the CLI with the following commands:
 
 ### 1. Deny List Operations

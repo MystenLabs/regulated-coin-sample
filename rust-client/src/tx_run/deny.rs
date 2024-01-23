@@ -1,23 +1,81 @@
 use std::str::FromStr;
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
+use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::Identifier;
-use sui_sdk::SuiClient;
-use sui_sdk::rpc_types::{SuiTransactionBlockResponseOptions, SuiTransactionBlockResponse};
-use sui_sdk::types::TypeTag;
+use move_core_types::language_storage::StructTag;
+use shared_crypto::intent::{Intent, IntentMessage};
+use sui_sdk::rpc_types::{SuiTransactionBlockResponse, SuiTransactionBlockResponseOptions, SuiObjectDataOptions, SuiObjectResponseQuery, SuiObjectDataFilter};
 use sui_sdk::types::base_types::{ObjectID, ObjectRef, SequenceNumber, SuiAddress};
+use sui_sdk::types::crypto::{SuiKeyPair, Signature};
+use sui_sdk::types::object::Owner;
 use sui_sdk::types::programmable_transaction_builder::ProgrammableTransactionBuilder;
 use sui_sdk::types::quorum_driver_types::ExecuteTransactionRequestType;
-use sui_sdk::types::transaction::{Command, ObjectArg, TransactionData};
-use sui_sdk::wallet_context::WalletContext;
+use sui_sdk::types::transaction::{Command, ObjectArg, TransactionData, Transaction};
+use sui_sdk::types::{TypeTag, SUI_DENY_LIST_OBJECT_ID};
+use sui_sdk::SuiClient;
 
 use crate::command::AppCommand;
 use crate::gas::select_gas;
 
+pub async fn get_deny_list(client: &SuiClient) -> Result<(ObjectID, SequenceNumber)> {
+    let resp = client
+        .read_api()
+        .get_object_with_options(
+            SUI_DENY_LIST_OBJECT_ID,
+            SuiObjectDataOptions {
+                show_type: true,
+                show_owner: true,
+                show_previous_transaction: false,
+                show_display: false,
+                show_content: false,
+                show_bcs: false,
+                show_storage_rebate: false,
+            },
+        )
+        .await?;
+    let deny_list = resp.data.ok_or(anyhow!("No deny-list found!"))?;
+    let Some(Owner::Shared {
+        initial_shared_version,
+    }) = deny_list.owner
+    else {
+        return Err(anyhow!("Invalid deny-list owner!"));
+    };
+    Ok((SUI_DENY_LIST_OBJECT_ID, initial_shared_version))
+}
+
+pub async fn get_deny_cap(client: &SuiClient, owner_addr: SuiAddress, type_tag: TypeTag) -> Result<ObjectRef> {
+
+    let resp = client
+        .read_api()
+        .get_owned_objects(
+            owner_addr,
+            Some(SuiObjectResponseQuery {
+                filter: Some(SuiObjectDataFilter::StructType(StructTag {
+                    address: AccountAddress::from_hex_literal("0x2")?,
+                    module: Identifier::from_str("coin")?,
+                    name: Identifier::from_str("DenyCap")?,
+                    type_params: vec![type_tag],
+                })),
+                options: None,
+            }),
+            None,
+            None,
+        )
+        .await?;
+
+    let deny_cap = resp
+        .data
+        .into_iter()
+        .next()
+        .ok_or(anyhow!("No deny-cap found!"))?;
+    Ok(deny_cap.data.ok_or(anyhow!("DenyCap empty!"))?.object_ref())
+}
+
 #[derive(Debug, Copy, Clone)]
 pub enum DenyListCommand {
     Add(SuiAddress),
-    Remove(SuiAddress)
+    Remove(SuiAddress),
 }
 
 impl TryFrom<AppCommand> for DenyListCommand {
@@ -46,41 +104,58 @@ impl ToString for DenyListCommand {
         match self {
             DenyListCommand::Add(_) => "deny_list_add",
             DenyListCommand::Remove(_) => "deny_list_remove",
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
 pub async fn deny_list_add(
     client: &SuiClient,
-    wallet: &mut WalletContext,
+    signer: &SuiKeyPair,
     otw_type: TypeTag,
     deny_list: (ObjectID, SequenceNumber),
     deny_cap: ObjectRef,
     addr: SuiAddress,
 ) -> Result<SuiTransactionBlockResponse> {
-    deny_list_cmd(client, wallet, DenyListCommand::Add(addr), otw_type, deny_list, deny_cap).await
+    deny_list_cmd(
+        client,
+        signer,
+        DenyListCommand::Add(addr),
+        otw_type,
+        deny_list,
+        deny_cap,
+    )
+    .await
 }
 
 pub async fn deny_list_remove(
     client: &SuiClient,
-    wallet: &mut WalletContext,
+    signer: &SuiKeyPair,
     otw_type: TypeTag,
     deny_list: (ObjectID, SequenceNumber),
     deny_cap: ObjectRef,
     addr: SuiAddress,
 ) -> Result<SuiTransactionBlockResponse> {
-    deny_list_cmd(client, wallet, DenyListCommand::Remove(addr), otw_type, deny_list, deny_cap).await
+    deny_list_cmd(
+        client,
+        signer,
+        DenyListCommand::Remove(addr),
+        otw_type,
+        deny_list,
+        deny_cap,
+    )
+    .await
 }
 
-pub async fn deny_list_cmd(
+async fn deny_list_cmd(
     client: &SuiClient,
-    wallet: &mut WalletContext,
+    signer: &SuiKeyPair,
     cmd: DenyListCommand,
     otw_type: TypeTag,
     deny_list: (ObjectID, SequenceNumber),
     deny_cap: ObjectRef,
 ) -> Result<SuiTransactionBlockResponse> {
-    let signer_addr = wallet.active_address()?;
+    let signer_addr = SuiAddress::from(&signer.public());
     let gas_data = select_gas(client, signer_addr, None, None, vec![], None).await?;
 
     let mut ptb = ProgrammableTransactionBuilder::new();
@@ -102,19 +177,23 @@ pub async fn deny_list_cmd(
 
     let builder = ptb.finish();
 
-    let tx_data = TransactionData::new_programmable(
+    // Sign transaction
+    let msg = IntentMessage {
+        intent: Intent::sui_transaction(),
+        value: TransactionData::new_programmable(
             signer_addr,
             vec![gas_data.object],
             builder,
             gas_data.budget,
             gas_data.price,
-        );
-    let tx = wallet.sign_transaction(&tx_data);
+        ),
+    };
+    let sig = Signature::new_secure(&msg, signer);
 
     let res = client
         .quorum_driver_api()
         .execute_transaction_block(
-            tx,
+            Transaction::from_data(msg.value, vec![sig]),
             SuiTransactionBlockResponseOptions::new()
                 .with_effects()
                 .with_input(),

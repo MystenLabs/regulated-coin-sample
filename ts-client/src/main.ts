@@ -15,9 +15,10 @@ import {Ed25519Keypair} from "@mysten/sui.js/keypairs/ed25519";
 const run = async () => {
 
     program
-        .name('stablecoin-utility')
-        .description('CLI to manage your Stablecoin')
+        .name('regulated-coin-utility')
+        .description('CLI to manage your Regulated Coin')
         .version('0.0.1');
+
 
     program.command('deny-list-add')
         .description('Adds an address to the deny list')
@@ -80,6 +81,7 @@ const run = async () => {
             console.log("Amount to mint: ", options.amount);
             console.log("Address to send coins: ", options.address);
             console.log("TREASURY_CAP_ID: ", TREASURY_CAP_ID);
+            console.log("COIN_TYPE: ", COIN_TYPE);
 
             if(!TREASURY_CAP_ID) throw new Error("TREASURY_CAP_ID environment variable is not set");
 
@@ -126,7 +128,7 @@ const run = async () => {
     program.command('help')
         .description('prints help')
         .action((options) => {
-            console.log("Help for stablecoin-utility");
+            console.log("Regulated coin utility");
             program.outputHelp();
         });
 

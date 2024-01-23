@@ -20,3 +20,5 @@ console.log("env contains ADMIN_ADDRESS:", keys.includes("ADMIN_ADDRESS"));
 console.log("env contains ADMIN_SECRET_KEY:", keys.includes("ADMIN_SECRET_KEY"));
 console.log("env contains TREASURY_CAP_ID:", keys.includes("TREASURY_CAP_ID"));
 console.log("env contains DENY_CAP_ID:", keys.includes("DENY_CAP_ID"));
+console.log("env contains MODULE_NAME:", keys.includes("MODULE_NAME"));
+console.log("env contains COIN_NAME:", keys.includes("COIN_NAME"));

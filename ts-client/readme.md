@@ -1,7 +1,7 @@
 
-# Stablecoin Utility CLI
+# Regulated Coin Utility CLI
 
-CLI tool to manage your Stablecoin using the `@mysten/sui.js` library.
+CLI tool to manage your Regulated Coin.
 
 #### Options:
 ```shell
@@ -31,7 +31,6 @@ help                         prints help
 
    ```bash
    git clone https://github.com/MystenLabs/regulated-coin-sample.git
-   cd stablecoin-utility
    ```
 
 2. Install dependencies:

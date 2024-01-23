@@ -16,8 +16,8 @@ module regulated_coin_example::regulated_coin {
             otw,
             5,
             b"STABLE$",
-            b"StableCoin",
-            b"Example Stable Coin",
+            b"RegulaCoin",
+            b"Example Regulated Coin",
             option::none(),
             ctx
         );

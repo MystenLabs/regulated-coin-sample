@@ -8,7 +8,7 @@ for i in jq curl sui; do
   fi
 done
 
-NETWORK=http://localhost:9000
+NETWORK=http://127.0.0.1:9000
 
 # Put the dependant package, as the depending will be published too via --with-unpublished-dependencies
 MOVE_PACKAGE_PATH=./move/regulated_coin_example
@@ -62,7 +62,8 @@ PACKAGE_ID=$PACKAGE_ID
 DENY_CAP_ID=$DENY_CAP_ID
 TREASURY_CAP_ID=$TREASURY_CAP_ID
 RUST_LOG=rust-client=DEBUG
-
+MODULE_NAME=regulated_coin
+COIN_NAME=REGULATED_COIN
 API_ENV
 
 echo "Contract Deployment finished!"

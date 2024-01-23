@@ -42,16 +42,6 @@ help                         prints help
 
 ## Configuration
 
-Ensure that you have the necessary environment variables set in a `.env` file or your environment:
-
-- `ADMIN_SECRET_KEY`: Admin's secret key for signing transactions.
-- `TREASURY_CAP_ID`: The Capability object that governs stablecoin's economy!.
-- `DENY_CAP_ID`: The capability object for the Deny List.
-- `SUI_NETWORK`: URL of the SUI network.
-- `MODULE_NAME`= The name of your published move module. eg. `regulated_coin`
-- `COIN_NAME`= The name of the Coin. eg: `REGULATED_COIN`
-
-## Usage
 
 You can use the provided move module `regulated_coin` as a base example for your own Regulated Coin, modify it to suit your needs and publish it to the SUI network
 
@@ -69,6 +59,29 @@ To publish to other networks, run :
 ```bash
 ./publish.sh testnet|devnet
 ````
+
+The script will also set the necessary environment variables for you in the `.env` file.
+
+```shell
+#Demo .env file
+
+SUI_FULLNODE_URL=http://localhost:9000
+PACKAGE_ID=0x123...
+DENY_CAP_ID=0x4556...
+TREASURY_CAP_ID=0x789....
+RUST_LOG=rust-client=DEBUG
+```
+
+If you don't use the provided publish script, make sure that you have the necessary environment variables set in a `.env` file or your environment:
+
+- `ADMIN_SECRET_KEY`: Admin's secret key for signing transactions.
+- `TREASURY_CAP_ID`: The Capability object that governs coin's economy!.
+- `DENY_CAP_ID`: The capability object for the Deny List.
+- `SUI_NETWORK`: URL of the SUI network.
+- `MODULE_NAME`= The name of your published move module. eg. `regulated_coin`
+- `COIN_NAME`= The name of the Coin. eg: `REGULATED_COIN`
+
+## Usage
 
 Run the CLI with the following commands:
 

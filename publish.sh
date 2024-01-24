@@ -55,16 +55,20 @@ if [ $# -eq 0 ]; then
   suffix=".localnet"
 fi
 
-# ADMIN_CAP_ID=$ADMIN_CAP_ID
-cat >.env<<-API_ENV
+cat >ts-client/.env<<-API_ENV
 SUI_FULLNODE_URL=$NETWORK
 PACKAGE_ID=$PACKAGE_ID
 ADMIN_ADDRESS=$ADMIN_ADDRESS
 DENY_CAP_ID=$DENY_CAP_ID
 TREASURY_CAP_ID=$TREASURY_CAP_ID
-RUST_LOG=rust_client=DEBUG
 MODULE_NAME=regulated_coin
 COIN_NAME=REGULATED_COIN
+API_ENV
+
+cat >rust-client/.env<<-API_ENV
+SUI_FULLNODE_URL=$NETWORK
+PACKAGE_ID=$PACKAGE_ID
+RUST_LOG=rust_client=DEBUG
 API_ENV
 
 echo "Contract Deployment finished!"

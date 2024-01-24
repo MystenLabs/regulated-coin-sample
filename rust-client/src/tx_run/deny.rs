@@ -207,6 +207,7 @@ async fn deny_list_cmd(
             Transaction::from_data(msg.value, vec![sig]),
             SuiTransactionBlockResponseOptions::new()
                 .with_effects()
+                .with_object_changes()
                 .with_input(),
             Some(ExecuteTransactionRequestType::WaitForLocalExecution),
         )

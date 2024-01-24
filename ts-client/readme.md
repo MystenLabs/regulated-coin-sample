@@ -14,7 +14,7 @@ CLI tool to manage your Regulated Coin.
 deny-list-add [options]      Adds an address to the deny list
 deny-list-remove [options]   Removes an address from the deny list
 mint-and-transfer [options]  mints coins and transfers to an address
-burn [options]               mints coins and transfers to an address
+burn [options]               burns coins
 help                         prints help
 ```
 

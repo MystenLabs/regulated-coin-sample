@@ -89,8 +89,8 @@ async fn test_is_blocked() -> Result<()> {
         let command = AppCommand::Transfer(coin_id, transfer_to);
         execute_command(command, config).await
     }
-    let resp2 = run_as_deny_addr(coin.0, admin_addr).await; // Notice we do not use '?' in order
-                                                            // for cmd_sui_client_switch runs again
+    let resp2 = run_as_deny_addr(coin.0, admin_addr).await; // Notice we do not use '?' so that
+                                                            // cmd_sui_client_switch runs again
     cmd_sui_client_switch(admin_addr)?;
     assert!(resp2.is_err());
     assert!(get_config().await?.wallet_context.active_address()? == admin_addr);

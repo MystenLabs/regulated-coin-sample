@@ -1,5 +1,7 @@
 # Usage
 
+The below commands are signed using the sui client's wallet active address and environment.
+
 #### `rust-client --help`
 ```
 Usage: rust-client [OPTIONS] <COMMAND>

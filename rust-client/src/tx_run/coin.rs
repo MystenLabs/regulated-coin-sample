@@ -121,6 +121,7 @@ pub async fn mint_and_transfer(
             Transaction::from_data(msg.value, vec![sig]),
             SuiTransactionBlockResponseOptions::new()
                 .with_effects()
+                .with_object_changes()
                 .with_input(),
             Some(ExecuteTransactionRequestType::WaitForLocalExecution),
         )
@@ -165,6 +166,7 @@ pub async fn transfer(
             Transaction::from_data(msg.value, vec![sig]),
             SuiTransactionBlockResponseOptions::new()
                 .with_effects()
+                .with_object_changes()
                 .with_input(),
             Some(ExecuteTransactionRequestType::WaitForLocalExecution),
         )

@@ -9,11 +9,16 @@
 
 ### Configuration
 
-Both tools assume that the following Environment Variables are set:
-
+Rust Tool uses _$HOME/.sui/sui_config_ (`sui client` environment) while
+Typescript Tool assumes that the following Environment Variables are set:
 
 - `ADMIN_SECRET_KEY`: Admin's secret key for signing transactions.
 - `SUI_FULLNODE_URL`: URL of the SUI network Node.
+
+Both Tools need:
+
+- `PACKAGE_ID`: The package of the regulated coin.
+- `MODULE_NAME`: The module name that the regulated coin is created.
 
 
 ### Documentation

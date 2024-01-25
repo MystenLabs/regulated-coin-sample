@@ -17,12 +17,15 @@ use rust_client::tx_run::{AppCommand, AppConfig};
 #[derive(Parser, Debug)]
 #[command(name = "rust-client")]
 struct Cli {
-    /// The address of the contract the coin is issued. If none is passed, .env `PACKAGE_ID` will be used.
+    /// The address of the contract the coin is issued.
+    /// If none is passed, environment variable `PACKAGE_ID` will be used.
     #[arg(long = "package-id", short = 'p')]
     package_id: Option<String>,
     /// The module that issues the coin.
-    #[arg(long = "module", short = 'm', default_value = "regulated_coin")]
-    module: String,
+    /// If none is passed, environment variable `MODULE_NAME` will be used.
+    /// Lastly defaults to "regulated_coin".
+    #[arg(long = "module", short = 'm')]
+    module: Option<String>,
     #[clap(subcommand)]
     command: CliCommand,
 }
@@ -66,7 +69,7 @@ enum CliCommand {
         /// The Coin to burn
         #[arg(value_parser)]
         coin: String,
-    }
+    },
 }
 
 async fn cli_parse() -> Result<(AppConfig, AppCommand)> {
@@ -83,6 +86,16 @@ async fn cli_parse() -> Result<(AppConfig, AppCommand)> {
         }
     };
     let package_id = ObjectID::from_hex_literal(&package_id_str)?;
+    let module = match module {
+        Some(module) => module,
+        None => {
+            dotenvy::dotenv().ok();
+            match std::env::var("MODULE_NAME") {
+                Ok(module) => module,
+                Err(_) => "regulated_coin".to_string()
+            }
+        }
+    };
     let otw = module.to_uppercase();
     let type_tag = TypeTag::Struct(Box::new(StructTag {
         address: AccountAddress::new(package_id.as_ref().try_into()?),
@@ -94,10 +107,19 @@ async fn cli_parse() -> Result<(AppConfig, AppCommand)> {
         WalletContext::new(&sui_config_dir()?.join(SUI_CLIENT_CONFIG), None, None).await?;
 
     let command = match command {
-        CliCommand::DenyListAdd { address } => AppCommand::DenyListAdd(SuiAddress::from_str(&address)?),
-        CliCommand::DenyListRemove { address } => AppCommand::DenyListRemove(SuiAddress::from_str(&address)?),
-        CliCommand::MintAndTransfer { balance, address } => AppCommand::MintAndTransfer(balance, SuiAddress::from_str(&address)?),
-        CliCommand::Transfer { coin, address } => AppCommand::Transfer(ObjectID::from_hex_literal(&coin)?, SuiAddress::from_str(&address)?),
+        CliCommand::DenyListAdd { address } => {
+            AppCommand::DenyListAdd(SuiAddress::from_str(&address)?)
+        }
+        CliCommand::DenyListRemove { address } => {
+            AppCommand::DenyListRemove(SuiAddress::from_str(&address)?)
+        }
+        CliCommand::MintAndTransfer { balance, address } => {
+            AppCommand::MintAndTransfer(balance, SuiAddress::from_str(&address)?)
+        }
+        CliCommand::Transfer { coin, address } => AppCommand::Transfer(
+            ObjectID::from_hex_literal(&coin)?,
+            SuiAddress::from_str(&address)?,
+        ),
         CliCommand::Burn { coin } => AppCommand::Burn(ObjectID::from_hex_literal(&coin)?),
     };
 

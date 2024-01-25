@@ -5542,6 +5542,8 @@ dependencies = [
  "dotenvy",
  "move-core-types",
  "shared-crypto",
+ "sui-config",
+ "sui-keys",
  "sui-sdk",
  "tokio",
  "tracing",

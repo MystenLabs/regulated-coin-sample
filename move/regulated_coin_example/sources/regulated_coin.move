@@ -2,7 +2,6 @@ module regulated_coin_example::regulated_coin {
     use std::option;
 
     use sui::coin;
-    use sui::object::{Self, UID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
 
@@ -16,8 +15,8 @@ module regulated_coin_example::regulated_coin {
             otw,
             5,
             b"STABLE$",
-            b"StableCoin",
-            b"Example Stable Coin",
+            b"RegulaCoin",
+            b"Example Regulated Coin",
             option::none(),
             ctx
         );
